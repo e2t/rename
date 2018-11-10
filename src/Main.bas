@@ -14,51 +14,50 @@ Sub Main()
     Dim isOtherDoc As Boolean
     
     Set swApp = Application.SldWorks
-    If swApp.GetDocumentCount > 0 Then
-        Set currentDoc = swApp.ActiveDoc
-        Set doc = GetDocument
-        isOtherDoc = Not doc Is currentDoc
-        oldName = doc.GetPathName
-        newName = GetNewName(oldName)
-        If newName <> "" Then
-            If isOtherDoc Then
-                If Not ActivateDoc(oldName) Then
-                    MsgBox "Не удалось открыть модель.", vbCritical
-                    Exit Sub
-                End If
-            End If
-            resultRename = RenameDoc(oldName, newName, doc)
-            If isOtherDoc Then
-                swApp.CloseDoc doc.GetPathName
-            End If
-            If resultRename Then
-                If isOtherDoc Then
-                    currentDoc.ForceRebuild3 (False)
-                    Sleep 500
-                End If
-                RemoveFile oldName
-            Else
-                MsgBox "Cannot to save file"
-            End If
+    Set currentDoc = swApp.ActiveDoc
+    If currentDoc Is Nothing Then Exit Sub
+
+    Set doc = GetDocument
+    isOtherDoc = Not doc Is currentDoc
+    oldName = doc.GetPathName
+    newName = GetNewName(oldName)
+    If newName = "" Then Exit Sub
+
+    If isOtherDoc Then
+        If Not ActivateDoc(oldName) Then
+            MsgBox "Не удалось открыть модель.", vbCritical
+            Exit Sub
         End If
+    End If
+    
+    resultRename = RenameDoc(oldName, newName, doc)
+    If isOtherDoc Then
+        swApp.CloseDoc doc.GetPathName
+    End If
+    If resultRename Then
+        If isOtherDoc Then
+            currentDoc.ForceRebuild3 (False)
+            Sleep 500
+        End If
+        RemoveFile oldName
+    Else
+        MsgBox "Cannot to save file"
     End If
 End Sub
       
 Function GetDocument() As ModelDoc2
     Dim thisDoc As ModelDoc2
     Dim selected As Component2
-    
-    Set thisDoc = swApp.ActiveDoc
-    If thisDoc.GetType = swDocASSEMBLY And _
-        thisDoc.SelectionManager.GetSelectedObjectType3(1, 0) <> swSelNOTHING Then
-        Set GetDocument = GetSelectedComponent(thisDoc).GetModelDoc2
-    Else
-        Set GetDocument = thisDoc
-    End If
-End Function
 
-Function GetSelectedComponent(thisDoc As ModelDoc2) As Component2
-    Set GetSelectedComponent = thisDoc.SelectionManager.GetSelectedObjectsComponent3(1, -1)
+    Set thisDoc = swApp.ActiveDoc
+    If thisDoc.GetType = swDocASSEMBLY Then
+        Set selected = thisDoc.SelectionManager.GetSelectedObjectsComponent4(1, -1)
+        If Not selected Is Nothing Then
+            Set GetDocument = selected.GetModelDoc2
+            Exit Function
+        End If
+    End If
+    Set GetDocument = thisDoc
 End Function
 
 Function GetNewName(oldName As String) As String
