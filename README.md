@@ -1,4 +1,6 @@
-﻿# Rename
+This project has been moved to https://codeberg.org/e2t/rename
+ 
+ # Rename
 Макрос для переименования активного документа SolidWorks.
 
 ### Зависимости
